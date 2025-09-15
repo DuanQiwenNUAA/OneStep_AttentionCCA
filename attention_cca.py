@@ -344,8 +344,8 @@ def demo_attention_cca():
     print(f"  视图1形状: {view1_data.shape}")
     print(f"  视图2形状: {view2_data.shape}")
     print(f"训练后处理结果形状:")
-    print(f"  视图1形状: {untrained_view1.shape}")
-    print(f"  视图2形状: {untrained_view2.shape}")
+    print(f"  视图1形状: {untrained_view1.squeeze().shape}")
+    print(f"  视图2形状: {untrained_view2.squeeze().shape}")
 
     # 评估原始视图的Kmeans聚类效果
     print("\n原始视图的Kmeans聚类效果:")
@@ -431,8 +431,8 @@ def demo_attention_cca():
     print(f"  视图1形状: {view1_test.shape}")
     print(f"  视图2形状: {view2_test.shape}")
     print(f"训练后处理结果形状:")
-    print(f"  视图1形状: {trained_view1.shape}")
-    print(f"  视图2形状: {trained_view2.shape}")
+    print(f"  视图1形状: {trained_view1.squeeze().shape}")
+    print(f"  视图2形状: {trained_view2.squeeze().shape}")
     
     # # 评估处理前后视图之间的相关性
     # print("\n评估处理前后视图之间的相关性:")
