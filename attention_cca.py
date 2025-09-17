@@ -129,9 +129,9 @@ class AttentionCCA:
         pds_view2 = compute_pds(torch.squeeze(processed_view2,dim = 1).detach().cpu().numpy())
         
         # 应用交叉注意力机制（如果启用）和结构复杂性度量
-        if self.config['enable_complexity_analysis']:
-            cross_view1 = apply_cross_attention(pds_view1 * processed_view1, pds_view2 * processed_view2, self.cross_attention1, self.device)
-            cross_view2 = apply_cross_attention(pds_view2 * processed_view2, pds_view1 * processed_view1, self.cross_attention2, self.device)
+        if self.config['enable_complexity_analysis']: # 使用绝对值的倒数作为权重
+            cross_view1 = apply_cross_attention(1.0 / abs(pds_view1) * processed_view1, 1.0 / abs(pds_view2)  * processed_view2, self.cross_attention1, self.device)
+            cross_view2 = apply_cross_attention(1.0 / abs(pds_view2) * processed_view2, 1.0 / abs(pds_view1)  * processed_view1, self.cross_attention2, self.device)
             
             # 将结果转换回numpy数组（如果需要）
             if not isinstance(view1_data, torch.Tensor):
@@ -296,7 +296,7 @@ class AttentionCCA:
                     pds_view1 = compute_pds(torch.squeeze(self_view1,dim = 1).detach().cpu().numpy())
                     pds_view2 = compute_pds(torch.squeeze(self_view2,dim = 1).detach().cpu().numpy())
                    
-                    使用结构复杂度加权作为交叉注意力层的输入
+                    # 使用结构复杂度加权作为交叉注意力层的输入
                     processed_view1 = apply_cross_attention(abs(pds_view1) * self_view1, abs(pds_view2) * self_view2, self.cross_attention1, self.device, train_mode=True)
                     processed_view2 = apply_cross_attention(abs(pds_view2) * self_view2, abs(pds_view1) * self_view1, self.cross_attention2, self.device, train_mode=True)
                     
@@ -347,7 +347,7 @@ def demo_attention_cca():
         'hidden_dim': 128,
         'use_gpu': True,
         'enable_cross_attention': True,
-        'enable_complexity_analysis': False,
+        'enable_complexity_analysis': True,
     }
     
     # 初始化模型
