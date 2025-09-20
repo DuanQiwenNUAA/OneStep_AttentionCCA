@@ -1,6 +1,7 @@
 import torch
 import torch.optim as optim
 import numpy as np
+from cca import CCA
 from self_attention import SelfAttention, MultiHeadSelfAttention, apply_self_attention
 from cross_attention import CrossAttention, apply_cross_attention
 from data_preprocessing import (
@@ -370,6 +371,12 @@ def demo_attention_cca():
     print("\n===== 未训练模型的处理结果 =====")
     model.config['enable_cross_attention'] = True
     untrained_view1, untrained_view2 = model.process_views(view1_data, view2_data)
+
+    # 使用CCA进行降维
+    cca0 = CCA(n_components=model.config['view1_output_dim'])
+    cca0.fit(view1_data, view2_data)
+    view1_cca, view2_cca = cca0.transform(view1_data, view2_data)
+
     print(f"\n测试数据形状:")
     print(f"  视图1形状: {view1_data.shape}")
     print(f"  视图2形状: {view2_data.shape}")
@@ -432,6 +439,33 @@ def demo_attention_cca():
         writer.writerow(['视图2', '调整兰德指数', processed_kmeans_result['view2_adjusted_rand_score'], '用未训练的模型处理后视图聚类'])
         writer.writerow(['视图2', '调整互信息分数', processed_kmeans_result['view2_adjusted_mutual_info_score'], '用未训练的模型处理后视图聚类'])
 
+    print("\n CCA处理后视图的Kmeans聚类效果:")
+    processed_kmeans_result = evaluate_kmeans_clustering(view1_cca, view2_cca, n_clusters, labels, labels)
+    print(f"  视图1轮廓系数: {processed_kmeans_result['view1_silhouette']:.4f}")
+    print(f"  视图1Calinski-Harabasz指数: {processed_kmeans_result['view1_calinski_harabasz_score']:.4f}")
+    print(f"  视图1Davies-Bouldin指数: {processed_kmeans_result['view1_davies_bouldin_score']:.4f}")
+    print(f"  视图1调整兰德指数: {processed_kmeans_result['view1_adjusted_rand_score']:.4f}")
+    print(f"  视图1调整互信息分数: {processed_kmeans_result['view1_adjusted_mutual_info_score']:.4f}")
+    print(f"  视图2轮廓系数: {processed_kmeans_result['view2_silhouette']:.4f}")
+    print(f"  视图2Calinski-Harabasz指数: {processed_kmeans_result['view2_calinski_harabasz_score']:.4f}")
+    print(f"  视图2Davies-Bouldin指数: {processed_kmeans_result['view2_davies_bouldin_score']:.4f}")
+    print(f"  视图2调整兰德指数: {processed_kmeans_result['view2_adjusted_rand_score']:.4f}")
+    print(f"  视图2调整互信息分数: {processed_kmeans_result['view2_adjusted_mutual_info_score']:.4f}")
+
+    # 记录处理后视图评估结果
+    with open(results_file, 'a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['视图1', '轮廓系数', processed_kmeans_result['view1_silhouette'], '用CCA处理后视图聚类'])
+        writer.writerow(['视图1', 'Calinski-Harabasz指数', processed_kmeans_result['view1_calinski_harabasz_score'], '用CCA处理后视图聚类'])
+        writer.writerow(['视图1', 'Davies-Bouldin指数', processed_kmeans_result['view1_davies_bouldin_score'], '用CCA处理后视图聚类'])
+        writer.writerow(['视图1', '调整兰德指数', processed_kmeans_result['view1_adjusted_rand_score'], '用CCA处理后视图聚类'])
+        writer.writerow(['视图1', '调整互信息分数', processed_kmeans_result['view1_adjusted_mutual_info_score'], '用CCA处理后视图聚类'])
+        writer.writerow(['视图2', '轮廓系数', processed_kmeans_result['view2_silhouette'], '用CCA处理后视图聚类'])
+        writer.writerow(['视图2', 'Calinski-Harabasz指数', processed_kmeans_result['view2_calinski_harabasz_score'], '用CCA处理后视图聚类'])
+        writer.writerow(['视图2', 'Davies-Bouldin指数', processed_kmeans_result['view2_davies_bouldin_score'], '用CCA处理后视图聚类'])
+        writer.writerow(['视图2', '调整兰德指数', processed_kmeans_result['view2_adjusted_rand_score'], '用CCA处理后视图聚类'])
+        writer.writerow(['视图2', '调整互信息分数', processed_kmeans_result['view2_adjusted_mutual_info_score'], '用CCA处理后视图聚类'])
+
     # 准备训练数据
     print("\n===== 开始训练模型 =====")
     # 分割训练和测试数据
@@ -469,9 +503,41 @@ def demo_attention_cca():
     print(f"  视图1形状: {trained_view1.squeeze().shape}")
     print(f"  视图2形状: {trained_view2.squeeze().shape}")
     
-    # 评估原始视图的Kmeans聚类效果
-    print("\n原始视图的Kmeans聚类效果:")
-    original_kmeans_result = evaluate_kmeans_clustering(view1_test, view2_test, n_clusters, labels_test, labels_test)
+    # # 评估原始视图的Kmeans聚类效果
+    # print("\n原始视图的Kmeans聚类效果:")
+    # original_kmeans_result = evaluate_kmeans_clustering(view1_test, view2_test, n_clusters, labels_test, labels_test)
+    # print(f"  视图1轮廓系数: {processed_kmeans_result['view1_silhouette']:.4f}")
+    # print(f"  视图1Calinski-Harabasz指数: {processed_kmeans_result['view1_calinski_harabasz_score']:.4f}")
+    # print(f"  视图1Davies-Bouldin指数: {processed_kmeans_result['view1_davies_bouldin_score']:.4f}")
+    # print(f"  视图1调整兰德指数: {processed_kmeans_result['view1_adjusted_rand_score']:.4f}")
+    # print(f"  视图1调整互信息分数: {processed_kmeans_result['view1_adjusted_mutual_info_score']:.4f}")
+    # print(f"  视图2轮廓系数: {processed_kmeans_result['view2_silhouette']:.4f}")
+    # print(f"  视图2Calinski-Harabasz指数: {processed_kmeans_result['view2_calinski_harabasz_score']:.4f}")
+    # print(f"  视图2Davies-Bouldin指数: {processed_kmeans_result['view2_davies_bouldin_score']:.4f}")
+    # print(f"  视图2调整兰德指数: {processed_kmeans_result['view2_adjusted_rand_score']:.4f}")
+    # print(f"  视图2调整互信息分数: {processed_kmeans_result['view2_adjusted_mutual_info_score']:.4f}")
+        
+    # # 记录原始视图测试集评估结果
+    # with open(results_file, 'a', newline='') as f:
+    #     writer = csv.writer(f)
+    #     writer.writerow(['视图1', '轮廓系数', processed_kmeans_result['view1_silhouette'], '对原始视图测试集聚类'])
+    #     writer.writerow(['视图1', 'Calinski-Harabasz指数', processed_kmeans_result['view1_calinski_harabasz_score'], '对原始视图测试集聚类'])
+    #     writer.writerow(['视图1', 'Davies-Bouldin指数', processed_kmeans_result['view1_davies_bouldin_score'], '对原始视图测试集聚类'])
+    #     writer.writerow(['视图1', '调整兰德指数', processed_kmeans_result['view1_adjusted_rand_score'], '对原始视图测试集聚类'])
+    #     writer.writerow(['视图1', '调整互信息分数', processed_kmeans_result['view1_adjusted_mutual_info_score'], '对原始视图测试集聚类'])
+    #     writer.writerow(['视图2', '轮廓系数', processed_kmeans_result['view2_silhouette'], '对原始视图测试集聚类'])
+    #     writer.writerow(['视图2', 'Calinski-Harabasz指数', processed_kmeans_result['view2_calinski_harabasz_score'], '对原始视图测试集聚类'])
+    #     writer.writerow(['视图2', 'Davies-Bouldin指数', processed_kmeans_result['view2_davies_bouldin_score'], '对原始视图测试集聚类'])
+    #     writer.writerow(['视图2', '调整兰德指数', processed_kmeans_result['view2_adjusted_rand_score'], '对原始视图测试集聚类'])
+    #     writer.writerow(['视图2', '调整互信息分数', processed_kmeans_result['view2_adjusted_mutual_info_score'], '对原始视图测试集聚类'])
+    
+    # 使用CCA对测试集处理并聚类
+    cca = CCA(n_components=model.config['view1_output_dim'])
+    cca.fit(view1_test, view2_test)
+    view1_cca, view2_cca = cca.transform(view1_test, view2_test)
+
+    print("\n CCA处理后视图的Kmeans聚类效果:")
+    processed_kmeans_result = evaluate_kmeans_clustering(view1_cca, view2_cca, n_clusters, labels_test, labels_test)
     print(f"  视图1轮廓系数: {processed_kmeans_result['view1_silhouette']:.4f}")
     print(f"  视图1Calinski-Harabasz指数: {processed_kmeans_result['view1_calinski_harabasz_score']:.4f}")
     print(f"  视图1Davies-Bouldin指数: {processed_kmeans_result['view1_davies_bouldin_score']:.4f}")
@@ -482,20 +548,20 @@ def demo_attention_cca():
     print(f"  视图2Davies-Bouldin指数: {processed_kmeans_result['view2_davies_bouldin_score']:.4f}")
     print(f"  视图2调整兰德指数: {processed_kmeans_result['view2_adjusted_rand_score']:.4f}")
     print(f"  视图2调整互信息分数: {processed_kmeans_result['view2_adjusted_mutual_info_score']:.4f}")
-        
-    # 记录原始视图测试集评估结果
+
+    # 记录处理后视图评估结果
     with open(results_file, 'a', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['视图1', '轮廓系数', processed_kmeans_result['view1_silhouette'], '对原始视图测试集聚类'])
-        writer.writerow(['视图1', 'Calinski-Harabasz指数', processed_kmeans_result['view1_calinski_harabasz_score'], '对原始视图测试集聚类'])
-        writer.writerow(['视图1', 'Davies-Bouldin指数', processed_kmeans_result['view1_davies_bouldin_score'], '对原始视图测试集聚类'])
-        writer.writerow(['视图1', '调整兰德指数', processed_kmeans_result['view1_adjusted_rand_score'], '对原始视图测试集聚类'])
-        writer.writerow(['视图1', '调整互信息分数', processed_kmeans_result['view1_adjusted_mutual_info_score'], '对原始视图测试集聚类'])
-        writer.writerow(['视图2', '轮廓系数', processed_kmeans_result['view2_silhouette'], '对原始视图测试集聚类'])
-        writer.writerow(['视图2', 'Calinski-Harabasz指数', processed_kmeans_result['view2_calinski_harabasz_score'], '对原始视图测试集聚类'])
-        writer.writerow(['视图2', 'Davies-Bouldin指数', processed_kmeans_result['view2_davies_bouldin_score'], '对原始视图测试集聚类'])
-        writer.writerow(['视图2', '调整兰德指数', processed_kmeans_result['view2_adjusted_rand_score'], '对原始视图测试集聚类'])
-        writer.writerow(['视图2', '调整互信息分数', processed_kmeans_result['view2_adjusted_mutual_info_score'], '对原始视图测试集聚类'])
+        writer.writerow(['视图1', '轮廓系数', processed_kmeans_result['view1_silhouette'], '用CCA处理后视图测试集聚类'])
+        writer.writerow(['视图1', 'Calinski-Harabasz指数', processed_kmeans_result['view1_calinski_harabasz_score'], '用CCA处理后视图测试集聚类'])
+        writer.writerow(['视图1', 'Davies-Bouldin指数', processed_kmeans_result['view1_davies_bouldin_score'], '用CCA处理后视图测试集聚类'])
+        writer.writerow(['视图1', '调整兰德指数', processed_kmeans_result['view1_adjusted_rand_score'], '用CCA处理后视图测试集聚类'])
+        writer.writerow(['视图1', '调整互信息分数', processed_kmeans_result['view1_adjusted_mutual_info_score'], '用CCA处理后视图测试集聚类'])
+        writer.writerow(['视图2', '轮廓系数', processed_kmeans_result['view2_silhouette'], '用CCA处理后视图测试集聚类'])
+        writer.writerow(['视图2', 'Calinski-Harabasz指数', processed_kmeans_result['view2_calinski_harabasz_score'], '用CCA处理后视图测试集聚类'])
+        writer.writerow(['视图2', 'Davies-Bouldin指数', processed_kmeans_result['view2_davies_bouldin_score'], '用CCA处理后视图测试集聚类'])
+        writer.writerow(['视图2', '调整兰德指数', processed_kmeans_result['view2_adjusted_rand_score'], '用CCA处理后视图测试集聚类'])
+        writer.writerow(['视图2', '调整互信息分数', processed_kmeans_result['view2_adjusted_mutual_info_score'], '用CCA处理后视图测试集聚类'])
     
     # 评估处理后视图的Kmeans聚类效果
     print("\n处理后视图的Kmeans聚类效果:")
