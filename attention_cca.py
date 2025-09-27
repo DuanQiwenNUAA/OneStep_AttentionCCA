@@ -335,15 +335,15 @@ def demo_attention_cca():
     演示OneStep_AttentionCCA的使用方法，包括模型训练过程
     """
     # 创建结果文件
-    results_file = os.path.join(os.path.dirname(__file__), r'D:\硕士\AttentionCCA\OneStep_AttentionCCA\Results\results.csv')
+    results_file = os.path.join(os.path.dirname(__file__), r'D:\硕士\AttentionCCA\OneStep_AttentionCCA\Results_pds\Results_ORL\results_pds_ORL_0_1.csv')
     with open(results_file, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(['视图', '指标名称', '指标值', '阶段'])
 
     # 四个视图，分别为：（400，512）、（400，59）、（400，864）、（400，254）
     mat_data = sio.loadmat("D:\本科毕业设计\Python_Projects\DataSets\数据集\ORL.mat")
-    view1_data = mat_data['fea'][0][0]
-    view2_data = mat_data['fea'][0][1]
+    view1_data = mat_data['fea'][0][1]
+    view2_data = mat_data['fea'][0][2]
     labels = mat_data['gt'].squeeze()
 
     n_clusters = 40  # 聚类数量
@@ -477,7 +477,7 @@ def demo_attention_cca():
     print("\n===== 同时训练自注意力和交叉注意力模型 =====")
     self_loss_history, processed_view1, processed_view2 = model.train_model(
         train_data=train_data,
-        num_epochs=300,  # 训练轮数
+        num_epochs=200,  # 训练轮数
         batch_size=view1_train.shape[0],  # 批次大小
         learning_rate=0.001  # 学习率
     )
